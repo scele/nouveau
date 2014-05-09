@@ -158,6 +158,7 @@ nouveau-y += core/subdev/instmem/base.o
 nouveau-y += core/subdev/instmem/nv04.o
 nouveau-y += core/subdev/instmem/nv40.o
 nouveau-y += core/subdev/instmem/nv50.o
+nouveau-y += core/subdev/instmem/gk20a.o
 nouveau-y += core/subdev/ltc/base.o
 nouveau-y += core/subdev/ltc/gf100.o
 nouveau-y += core/subdev/ltc/gk104.o
