@@ -21,15 +21,9 @@
  */
 
 #include "priv.h"
+#include "ramgk20a.h"
 
 #include <subdev/fb.h>
-
-struct gk20a_mem {
-	struct nouveau_mem base;
-	void *cpuaddr;
-	dma_addr_t handle;
-};
-#define to_gk20a_mem(m) container_of(m, struct gk20a_mem, base)
 
 static void
 gk20a_ram_put(struct nouveau_fb *pfb, struct nouveau_mem **pmem)
