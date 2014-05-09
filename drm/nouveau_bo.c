@@ -408,12 +408,22 @@ int
 nouveau_bo_validate(struct nouveau_bo *nvbo, bool interruptible,
 		    bool no_wait_gpu)
 {
+	struct nouveau_device *device;
+	struct ttm_tt *ttm = nvbo->bo.ttm;
 	int ret;
 
 	ret = ttm_bo_validate(&nvbo->bo, &nvbo->placement,
 			      interruptible, no_wait_gpu);
 	if (ret)
 		return ret;
+
+	if (!ttm)
+		return ret;
+
+	device = nvkm_device(&nouveau_bdev(ttm->bdev)->device);
+	nv_wr32(device, 0x70004, 0x00000001);
+	if (!nv_wait(device, 0x070004, 0x00000001, 0x00000000))
+		nv_warn(device, "L2 invalidate timeout\n");
 
 	return 0;
 }
