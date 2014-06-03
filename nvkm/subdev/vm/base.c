@@ -152,13 +152,18 @@ nouveau_vm_map_sg(struct nouveau_vma *vma, u64 delta, u64 length,
 		end = (pte + num);
 		if (unlikely(end >= max))
 			end = max;
-		len = end - pte;
+
+		/*
+		 * Map pages >4KB one by one so we can fix the list pointer
+		 * as to not map intermediate pages to the next PTE
+		 */
+		len = bits ? 1 : end - pte;
 
 		vmm->map_sg(vma, pgt, mem, pte, len, list);
 
 		num  -= len;
 		pte  += len;
-		list += len;
+		list += len << bits;
 		if (unlikely(end >= max)) {
 			pde++;
 			pte = 0;
