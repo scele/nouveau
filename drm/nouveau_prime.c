@@ -27,12 +27,37 @@
 #include "nouveau_drm.h"
 #include "nouveau_gem.h"
 
+#include "subdev/fb.h"
+
 struct sg_table *nouveau_gem_prime_get_sg_table(struct drm_gem_object *obj)
 {
 	struct nouveau_bo *nvbo = nouveau_gem_object(obj);
-	int npages = nvbo->bo.num_pages;
+	struct nouveau_mem *mem = nvbo->bo.mem.mm_node;
+	unsigned int npages = nvbo->bo.num_pages;
+	struct sg_table *sgt;
 
-	return drm_prime_pages_to_sg(nvbo->bo.ttm->pages, npages);
+	if (nvbo->bo.ttm) {
+		sgt = drm_prime_pages_to_sg(nvbo->bo.ttm->pages, npages);
+	} else {
+		struct page *page = phys_to_page(mem->offset);
+
+		sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
+		if (!sgt)
+			goto out;
+
+		if (sg_alloc_table(sgt, 1, GFP_KERNEL)) {
+			kfree(sgt);
+			sgt = NULL;
+			goto out;
+		}
+
+		sg_set_page(sgt->sgl, page, PAGE_SIZE, 0);
+		sg_dma_address(sgt->sgl) = mem->offset;
+		sg_dma_len(sgt->sgl) = mem->size * PAGE_SIZE;
+	}
+
+out:
+	return sgt;
 }
 
 void *nouveau_gem_prime_vmap(struct drm_gem_object *obj)
@@ -89,7 +114,11 @@ int nouveau_gem_prime_pin(struct drm_gem_object *obj)
 	int ret;
 
 	/* pin buffer into GTT */
+#if 0
 	ret = nouveau_bo_pin(nvbo, TTM_PL_FLAG_TT);
+#else
+	ret = nouveau_bo_pin(nvbo, TTM_PL_FLAG_VRAM);
+#endif
 	if (ret)
 		return -EINVAL;
 
