@@ -11,6 +11,7 @@ struct nouveau_bo {
 	u32 valid_domains;
 	u32 placements[3];
 	u32 busy_placements[3];
+	bool force_coherent;
 	struct ttm_bo_kmap_obj kmap;
 	struct list_head head;
 
