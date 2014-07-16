@@ -92,7 +92,8 @@ nouveau_vram_manager_new(struct ttm_mem_type_manager *man,
 		return (ret == -ENOSPC) ? 0 : ret;
 	}
 
-	node->page_shift = nvbo->page_shift;
+	if (!node->page_shift)
+		node->page_shift = nvbo->page_shift;
 
 	mem->mm_node = node;
 	mem->start   = node->offset >> PAGE_SHIFT;

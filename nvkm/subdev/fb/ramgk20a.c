@@ -53,8 +53,8 @@ gk20a_ram_get(struct nouveau_fb *pfb, u64 size, u32 align, u32 ncmin,
 	u32 npages, order;
 	int i;
 
-	nv_debug(pfb, "%s: size: %llx align: %x, ncmin: %x\n", __func__, size,
-		 align, ncmin);
+	nv_debug(pfb, "%s: size: 0x%llx align: 0x%x, ncmin: 0x%x\n", __func__,
+		size, align, ncmin);
 
 	npages = size >> PAGE_SHIFT;
 	if (npages == 0)
@@ -73,14 +73,26 @@ gk20a_ram_get(struct nouveau_fb *pfb, u64 size, u32 align, u32 ncmin,
 	/* ensure returned address is correctly aligned */
 	npages = max(align, npages);
 
+	/* use big pages if we can, since our memory is always contiguous */
+	if (ncmin == 0 && npages % 0x20 == 0)
+		ncmin = 0x20000;
+	else if (ncmin == 0)
+		ncmin = 0x1000;
+	ncmin >>= PAGE_SHIFT;
+
+	/* ensure size is a multiple of ncmin */
+	npages = roundup(npages, ncmin);
+
 	mem = kzalloc(sizeof(*mem), GFP_KERNEL);
 	if (!mem)
 		return -ENOMEM;
 
 	mem->base.size = npages;
 	mem->base.memtype = type;
+	mem->base.page_shift = fls(ncmin << PAGE_SHIFT) - 1;
 
-	mem->base.pages = kzalloc(sizeof(dma_addr_t) * npages, GFP_KERNEL);
+	mem->base.pages = kzalloc(sizeof(dma_addr_t) * npages / ncmin,
+				  GFP_KERNEL);
 	if (!mem->base.pages) {
 		kfree(mem);
 		return -ENOMEM;
@@ -106,8 +118,8 @@ gk20a_ram_get(struct nouveau_fb *pfb, u64 size, u32 align, u32 ncmin,
 	nv_debug(pfb, "alloc size: 0x%x, align: 0x%x, paddr: %pad, vaddr: %p\n",
 		 npages << PAGE_SHIFT, align, &mem->handle, mem->cpuaddr);
 
-	for (i = 0; i < npages; i++)
-		mem->base.pages[i] = mem->handle + (PAGE_SIZE * i);
+	for (i = 0; i < npages / ncmin; i++)
+		mem->base.pages[i] = mem->handle + (PAGE_SIZE * i * ncmin);
 
 	mem->base.offset = (u64)mem->base.pages[0];
 
