@@ -136,16 +136,26 @@ nouveau_vm_map_sg(struct nouveau_vma *vma, u64 delta, u64 length,
 {
 	struct nouveau_vm *vm = vma->vm;
 	struct nouveau_vmmgr *vmm = vm->vmm;
+	/* these pages are always PAGE_SIZE (should be mem->page_shift) sized */
 	dma_addr_t *list = mem->pages;
-	int big = vma->node->type != vmm->spg_shift;
+	/* whether the VMA type matches the small page type or not */
+	/* if not, it should always match the big page type */
+	int big = mem->page_shift != vmm->spg_shift;
+	/* first VMA page to map */
 	u32 offset = vma->node->offset + (delta >> 12);
-	u32 bits = vma->node->type - 12;
-	u32 num  = length >> vma->node->type;
+	/* difference between size of node pages and small pages of VMM */
+	u32 bits = mem->page_shift - vmm->spg_shift;
+	/* number of VMA pages to map */
+	u32 num  = length >> mem->page_shift;
+	/* first pde */
 	u32 pde  = (offset >> vmm->pgt_bits) - vm->fpde;
+	/* first pte */
 	u32 pte  = (offset & ((1 << vmm->pgt_bits) - 1)) >> bits;
+	/* last pte before switching to the next pde */
 	u32 max  = 1 << (vmm->pgt_bits - bits);
 	u32 end, len;
 
+	//printk("%s %d %d %d\n", __func__, big, vma->node->type, mem->page_shift);
 	while (num) {
 		struct nouveau_gpuobj *pgt = vm->pgt[pde].obj[big];
 

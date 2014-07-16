@@ -38,6 +38,7 @@ nv04_sgdma_bind(struct ttm_tt *ttm, struct ttm_mem_reg *mem)
 		node->pages = nvbe->ttm.dma_address;
 	}
 	node->size = (mem->num_pages << PAGE_SHIFT) >> 12;
+	node->page_shift = PAGE_SHIFT;
 
 	nouveau_vm_map(&node->vma[0], node);
 	nvbe->node = node;
