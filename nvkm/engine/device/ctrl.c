@@ -43,7 +43,7 @@ nouveau_control_mthd_pstate_info(struct nouveau_object *object,
 	int ret;
 
 	nv_ioctl(object, "control pstate info size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "control pstate info vers %d\n",
 			 args->v0.version);
 	} else
@@ -82,7 +82,7 @@ nouveau_control_mthd_pstate_attr(struct nouveau_object *object,
 	int ret;
 
 	nv_ioctl(object, "control pstate attr size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "control pstate attr vers %d state %d "
 				 "index %d\n",
 			 args->v0.version, args->v0.state, args->v0.index);
@@ -151,7 +151,7 @@ nouveau_control_mthd_pstate_user(struct nouveau_object *object,
 	int ret;
 
 	nv_ioctl(object, "control pstate user size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "control pstate user vers %d ustate %d "
 				 "pwrsrc %d\n", args->v0.version,
 			 args->v0.ustate, args->v0.pwrsrc);

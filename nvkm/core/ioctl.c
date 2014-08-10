@@ -44,7 +44,7 @@ nvkm_ioctl_nop(struct nouveau_handle *handle, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "nop size %d\n", size);
-	if (nvif_unvers(args->none)) {
+	if (NVIF_UNVERS(args->none)) {
 		nv_ioctl(object, "nop\n");
 	}
 
@@ -66,7 +66,7 @@ nvkm_ioctl_sclass(struct nouveau_handle *handle, void *data, u32 size)
 	}
 
 	nv_ioctl(object, "sclass size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		nv_ioctl(object, "sclass vers %d count %d\n",
 			 args->v0.version, args->v0.count);
 		if (size == args->v0.count * sizeof(args->v0.oclass[0])) {
@@ -100,7 +100,7 @@ nvkm_ioctl_new(struct nouveau_handle *parent, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(client, "new size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		_handle = args->v0.handle;
 		_oclass = args->v0.oclass;
 	} else
@@ -191,7 +191,7 @@ nvkm_ioctl_del(struct nouveau_handle *handle, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "delete size %d\n", size);
-	if (nvif_unvers(args->none)) {
+	if (NVIF_UNVERS(args->none)) {
 		nv_ioctl(object, "delete\n");
 		nouveau_handle_fini(handle, false);
 		nouveau_handle_destroy(handle);
@@ -211,7 +211,7 @@ nvkm_ioctl_mthd(struct nouveau_handle *handle, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "mthd size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		nv_ioctl(object, "mthd vers %d mthd %02x\n",
 			 args->v0.version, args->v0.method);
 		if (ret = -ENODEV, ofuncs->mthd)
@@ -233,7 +233,7 @@ nvkm_ioctl_rd(struct nouveau_handle *handle, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "rd size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "rd vers %d size %d addr %016llx\n",
 			args->v0.version, args->v0.size, args->v0.addr);
 		switch (args->v0.size) {
@@ -275,7 +275,7 @@ nvkm_ioctl_wr(struct nouveau_handle *handle, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "wr size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "wr vers %d size %d addr %016llx data %08x\n",
 			 args->v0.version, args->v0.size, args->v0.addr,
 			 args->v0.data);
@@ -318,7 +318,7 @@ nvkm_ioctl_map(struct nouveau_handle *handle, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "map size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "map vers %d\n", args->v0.version);
 		if (ret = -ENODEV, ofuncs->map) {
 			ret = ofuncs->map(object, &args->v0.handle,
@@ -339,7 +339,7 @@ nvkm_ioctl_unmap(struct nouveau_handle *handle, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "unmap size %d\n", size);
-	if (nvif_unvers(args->none)) {
+	if (NVIF_UNVERS(args->none)) {
 		nv_ioctl(object, "unmap\n");
 	}
 
@@ -359,7 +359,7 @@ nvkm_ioctl_ntfy_new(struct nouveau_handle *handle, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "ntfy new size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		nv_ioctl(object, "ntfy new vers %d event %02x\n",
 			 args->v0.version, args->v0.event);
 		if (ret = -ENODEV, ofuncs->ntfy)
@@ -387,7 +387,7 @@ nvkm_ioctl_ntfy_del(struct nouveau_handle *handle, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "ntfy del size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "ntfy del vers %d index %d\n",
 			 args->v0.version, args->v0.index);
 		ret = nvkm_client_notify_del(client, args->v0.index);
@@ -407,7 +407,7 @@ nvkm_ioctl_ntfy_get(struct nouveau_handle *handle, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "ntfy get size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "ntfy get vers %d index %d\n",
 			 args->v0.version, args->v0.index);
 		ret = nvkm_client_notify_get(client, args->v0.index);
@@ -427,7 +427,7 @@ nvkm_ioctl_ntfy_put(struct nouveau_handle *handle, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "ntfy put size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "ntfy put vers %d index %d\n",
 			 args->v0.version, args->v0.index);
 		ret = nvkm_client_notify_put(client, args->v0.index);
@@ -511,7 +511,7 @@ nvkm_ioctl(struct nouveau_client *client, bool supervisor,
 	client->super = supervisor;
 	nv_ioctl(client, "size %d\n", size);
 
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		nv_ioctl(client, "vers %d type %02x path %d owner %02x\n",
 			 args->v0.version, args->v0.type, args->v0.path_nr,
 			 args->v0.owner);

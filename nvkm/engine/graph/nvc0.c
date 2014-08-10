@@ -136,7 +136,7 @@ nvc0_fermi_mthd_zbc_color(struct nouveau_object *object, void *data, u32 size)
 	} *args = data;
 	int ret;
 
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		switch (args->v0.format) {
 		case FERMI_A_ZBC_COLOR_V0_FMT_ZERO:
 		case FERMI_A_ZBC_COLOR_V0_FMT_UNORM_ONE:
@@ -182,7 +182,7 @@ nvc0_fermi_mthd_zbc_depth(struct nouveau_object *object, void *data, u32 size)
 	} *args = data;
 	int ret;
 
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		switch (args->v0.format) {
 		case FERMI_A_ZBC_DEPTH_V0_FMT_FP32:
 			ret = nvc0_graph_zbc_depth_get(priv, args->v0.format,

@@ -45,7 +45,7 @@ nv04_disp_scanoutpos(struct nouveau_object *object, struct nv04_disp_priv *priv,
 	int ret;
 
 	nv_ioctl(object, "disp scanoutpos size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "disp scanoutpos vers %d\n", args->v0.version);
 		args->v0.vblanks = nv_rd32(priv, 0x680800 + hoff) & 0xffff;
 		args->v0.vtotal  = nv_rd32(priv, 0x680804 + hoff) & 0xffff;
@@ -84,7 +84,7 @@ nv04_disp_mthd(struct nouveau_object *object, u32 mthd, void *data, u32 size)
 	int head, ret;
 
 	nv_ioctl(object, "disp mthd size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		nv_ioctl(object, "disp mthd vers %d mthd %02x head %d\n",
 			 args->v0.version, args->v0.method, args->v0.head);
 		mthd = args->v0.method;

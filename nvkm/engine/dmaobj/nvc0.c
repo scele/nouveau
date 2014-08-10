@@ -92,7 +92,7 @@ nvc0_dmaobj_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	args = data;
 
 	nv_ioctl(parent, "create gf100 dma size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(parent, "create gf100 dma vers %d priv %d kind %02x\n",
 			 args->v0.version, args->v0.priv, args->v0.kind);
 		kind = args->v0.kind;

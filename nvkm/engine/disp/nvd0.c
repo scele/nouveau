@@ -608,7 +608,7 @@ nvd0_disp_base_scanoutpos(NV50_DISP_MTHD_V0)
 	int ret;
 
 	nv_ioctl(object, "disp scanoutpos size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "disp scanoutpos vers %d\n", args->v0.version);
 		args->v0.vblanke = (blanke & 0xffff0000) >> 16;
 		args->v0.hblanke = (blanke & 0x0000ffff);

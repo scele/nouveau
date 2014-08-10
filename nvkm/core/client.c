@@ -114,7 +114,7 @@ nvkm_client_notify_new(struct nouveau_client *client,
 		return -ENOMEM;
 
 	nv_ioctl(client, "notify new size %d\n", size);
-	if (nvif_unpack(req->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(req->v0, 0, 0, true)) {
 		nv_ioctl(client, "notify new vers %d reply %d route %02x "
 				 "token %llx\n", req->v0.version,
 			 req->v0.reply, req->v0.route, req->v0.token);
@@ -149,7 +149,7 @@ nouveau_client_devlist(struct nouveau_object *object, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "client devlist size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		nv_ioctl(object, "client devlist vers %d count %d\n",
 			 args->v0.version, args->v0.count);
 		if (size == sizeof(args->v0.device[0]) * args->v0.count) {

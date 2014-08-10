@@ -43,7 +43,7 @@ nv50_dac_power(NV50_DISP_MTHD_V1)
 	int ret;
 
 	nv_ioctl(object, "disp dac pwr size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "disp dac pwr vers %d state %d data %d "
 				 "vsync %d hsync %d\n",
 			 args->v0.version, args->v0.state, args->v0.data,
@@ -72,7 +72,7 @@ nv50_dac_sense(NV50_DISP_MTHD_V1)
 	int ret;
 
 	nv_ioctl(object, "disp dac load size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "disp dac load vers %d data %08x\n",
 			 args->v0.version, args->v0.data);
 		if (args->v0.data & 0xfff00000)

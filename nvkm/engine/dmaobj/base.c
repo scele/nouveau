@@ -78,7 +78,7 @@ nvkm_dmaobj_create_(struct nouveau_object *parent,
 		return ret;
 
 	nv_ioctl(parent, "create dma size %d\n", *psize);
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		nv_ioctl(parent, "create dma vers %d target %d access %d "
 				 "start %016llx limit %016llx\n",
 			 args->v0.version, args->v0.target, args->v0.access,

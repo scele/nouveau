@@ -39,7 +39,7 @@ nv84_hdmi_ctrl(NV50_DISP_MTHD_V1)
 	int ret;
 
 	nv_ioctl(object, "disp sor hdmi ctrl size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "disp sor hdmi ctrl vers %d state %d "
 				 "max_ac_packet %d rekey %d\n",
 			 args->v0.version, args->v0.state,

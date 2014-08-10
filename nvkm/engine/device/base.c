@@ -88,7 +88,7 @@ nouveau_devobj_info(struct nouveau_object *object, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "device info size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "device info vers %d\n", args->v0.version);
 	} else
 		return ret;
@@ -289,7 +289,7 @@ nouveau_devobj_ctor(struct nouveau_object *parent,
 	int ret, i, c;
 
 	nv_ioctl(parent, "create device size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(parent, "create device v%d device %016llx "
 				 "disable %016llx debug0 %016llx\n",
 			 args->v0.version, args->v0.device,

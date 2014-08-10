@@ -41,7 +41,7 @@ nouveau_disp_vblank_ctor(void *data, u32 size, struct nvkm_notify *notify)
 	} *req = data;
 	int ret;
 
-	if (nvif_unpack(req->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(req->v0, 0, 0, false)) {
 		notify->size = sizeof(struct nvif_notify_head_rep_v0);
 		if (ret = -ENXIO, req->v0.head <= disp->vblank.index_nr) {
 			notify->types = 1;
@@ -71,7 +71,7 @@ nouveau_disp_hpd_ctor(void *data, u32 size, struct nvkm_notify *notify)
 	struct nvkm_output *outp;
 	int ret;
 
-	if (nvif_unpack(req->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(req->v0, 0, 0, false)) {
 		notify->size = sizeof(struct nvif_notify_conn_rep_v0);
 		list_for_each_entry(outp, &disp->outp, head) {
 			if (ret = -ENXIO, outp->conn->index == req->v0.conn) {

@@ -177,7 +177,7 @@ nouveau_fifo_uevent_ctor(void *data, u32 size, struct nvkm_notify *notify)
 	} *req = data;
 	int ret;
 
-	if (nvif_unvers(req->none)) {
+	if (NVIF_UNVERS(req->none)) {
 		notify->size  = sizeof(struct nvif_notify_uevent_rep);
 		notify->types = 1;
 		notify->index = 0;

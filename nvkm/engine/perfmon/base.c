@@ -119,7 +119,7 @@ nouveau_perfctr_query(struct nouveau_object *object, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "perfctr query size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "perfctr query vers %d iter %08x\n",
 			 args->v0.version, args->v0.iter);
 		di = (args->v0.iter & 0xff000000) >> 24;
@@ -174,7 +174,7 @@ nouveau_perfctr_sample(struct nouveau_object *object, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "perfctr sample size %d\n", size);
-	if (nvif_unvers(args->none)) {
+	if (NVIF_UNVERS(args->none)) {
 		nv_ioctl(object, "perfctr sample\n");
 	} else
 		return ret;
@@ -225,7 +225,7 @@ nouveau_perfctr_read(struct nouveau_object *object, void *data, u32 size)
 	int ret;
 
 	nv_ioctl(object, "perfctr read size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(object, "perfctr read vers %d\n", args->v0.version);
 	} else
 		return ret;
@@ -280,7 +280,7 @@ nouveau_perfctr_ctor(struct nouveau_object *parent,
 	int ret, i;
 
 	nv_ioctl(parent, "create perfctr size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(parent, "create perfctr vers %d logic_op %04x\n",
 			 args->v0.version, args->v0.logic_op);
 	} else

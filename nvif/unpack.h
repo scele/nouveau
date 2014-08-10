@@ -1,12 +1,12 @@
 #ifndef __NVIF_UNPACK_H__
 #define __NVIF_UNPACK_H__
 
-#define nvif_unvers(d) ({                                                      \
+#define NVIF_UNVERS(d) ({                                                      \
 	ret = (size == sizeof(d)) ? 0 : -ENOSYS;                               \
 	(ret == 0);                                                            \
 })
 
-#define nvif_unpack(d,vl,vh,m) ({                                              \
+#define NVIF_UNPACK(d,vl,vh,m) ({                                              \
 	if ((vl) == 0 || ret == -ENOSYS) {                                     \
 		int _size = sizeof(d);                                         \
 		if (_size <= size && (d).version >= (vl) &&                    \

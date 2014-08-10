@@ -68,7 +68,7 @@ nv10_fifo_chan_ctor(struct nouveau_object *parent,
 	int ret;
 
 	nv_ioctl(parent, "create channel dma size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(parent, "create channel dma vers %d pushbuf %08x "
 				 "offset %016llx\n", args->v0.version,
 			 args->v0.pushbuf, args->v0.offset);

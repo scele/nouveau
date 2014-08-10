@@ -131,7 +131,7 @@ usif_notify_new(struct drm_file *f, void *data, u32 size, void *argv, u32 argc)
 	struct usif_notify *ntfy;
 	int ret;
 
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		if (usif_notify_find(f, args->v0.index))
 			return -EEXIST;
 	} else
@@ -142,7 +142,7 @@ usif_notify_new(struct drm_file *f, void *data, u32 size, void *argv, u32 argc)
 		return -ENOMEM;
 	atomic_set(&ntfy->enabled, 0);
 
-	if (nvif_unpack(req->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(req->v0, 0, 0, true)) {
 		ntfy->reply = sizeof(struct nvif_notify_rep_v0) + req->v0.reply;
 		ntfy->route = req->v0.route;
 		ntfy->token = req->v0.token;
@@ -172,7 +172,7 @@ usif_notify_del(struct drm_file *f, void *data, u32 size, void *argv, u32 argc)
 	struct usif_notify *ntfy;
 	int ret;
 
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		if (!(ntfy = usif_notify_find(f, args->v0.index)))
 			return -ENOENT;
 	} else
@@ -195,7 +195,7 @@ usif_notify_get(struct drm_file *f, void *data, u32 size, void *argv, u32 argc)
 	struct usif_notify *ntfy;
 	int ret;
 
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		if (!(ntfy = usif_notify_find(f, args->v0.index)))
 			return -ENOENT;
 	} else
@@ -234,7 +234,7 @@ usif_notify_put(struct drm_file *f, void *data, u32 size, void *argv, u32 argc)
 	struct usif_notify *ntfy;
 	int ret;
 
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		if (!(ntfy = usif_notify_find(f, args->v0.index)))
 			return -ENOENT;
 	} else
@@ -275,7 +275,7 @@ usif_object_new(struct drm_file *f, void *data, u32 size, void *argv, u32 argc)
 		return -ENOMEM;
 	list_add(&object->head, &cli->objects);
 
-	if (nvif_unpack(args->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, true)) {
 		object->route = args->v0.route;
 		object->token = args->v0.token;
 		args->v0.route = NVDRM_OBJECT_USIF;
@@ -309,7 +309,7 @@ usif_ioctl(struct drm_file *filp, void __user *user, u32 argc)
 	if (ret = -EFAULT, copy_from_user(argv, user, size))
 		goto done;
 
-	if (nvif_unpack(argv->v0, 0, 0, true)) {
+	if (NVIF_UNPACK(argv->v0, 0, 0, true)) {
 		/* block access to objects not created via this interface */
 		owner = argv->v0.owner;
 		argv->v0.owner = NVDRM_OBJECT_USIF;

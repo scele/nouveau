@@ -204,7 +204,7 @@ nv50_fifo_chan_ctor_dma(struct nouveau_object *parent,
 	int ret;
 
 	nv_ioctl(parent, "create channel dma size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(parent, "create channel dma vers %d pushbuf %08x "
 				 "offset %016llx\n", args->v0.version,
 			 args->v0.pushbuf, args->v0.offset);
@@ -267,7 +267,7 @@ nv50_fifo_chan_ctor_ind(struct nouveau_object *parent,
 	int ret;
 
 	nv_ioctl(parent, "create channel gpfifo size %d\n", size);
-	if (nvif_unpack(args->v0, 0, 0, false)) {
+	if (NVIF_UNPACK(args->v0, 0, 0, false)) {
 		nv_ioctl(parent, "create channel gpfifo vers %d pushbuf %08x "
 				 "ioffset %016llx ilength %08x\n",
 			 args->v0.version, args->v0.pushbuf, args->v0.ioffset,
