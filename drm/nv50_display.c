@@ -256,7 +256,26 @@ nv50_dmac_create(struct nvif_object *disp, const u32 *oclass, u8 head,
 
 struct nv50_mast {
 	struct nv50_dmac base;
+	struct nvif_notify notify;
+	wait_queue_head_t wait;
+	bool done;
 };
+
+static int
+nv50_core_notify(struct nvif_notify *notify)
+{
+	struct nv50_mast *core = container_of(notify, typeof(*core), notify);
+	core->done = true;
+	wake_up(&core->wait);
+	return NVIF_NOTIFY_DROP;
+}
+
+static void
+nv50_core_destroy(struct nv50_mast *core, struct nvif_object *disp)
+{
+	nvif_notify_fini(&core->notify);
+	nv50_dmac_destroy(&core->base, disp);
+}
 
 static int
 nv50_core_create(struct nvif_object *disp, u64 syncbuf, struct nv50_mast *core)
@@ -276,9 +295,21 @@ nv50_core_create(struct nvif_object *disp, u64 syncbuf, struct nv50_mast *core)
 		NV50_DISP_CORE_CHANNEL_DMA,
 		0
 	};
+	int ret;
 
-	return nv50_dmac_create(disp, oclass, 0, &args, sizeof(args), syncbuf,
-			       &core->base);
+	ret = nv50_dmac_create(disp, oclass, 0, &args, sizeof(args), syncbuf,
+			      &core->base);
+	if (ret)
+		return ret;
+
+	ret = nvif_notify_init(&core->base.base.user, NULL, nv50_core_notify,
+			       false, NV50_DISP_CORE_CHANNEL_DMA_V0_NTFY_UEVENT,
+			       NULL, 0, 0, &core->notify);
+	if (ret)
+		return ret;
+
+	init_waitqueue_head(&core->wait);
+	return 0;
 }
 
 /******************************************************************************
@@ -427,35 +458,27 @@ evo_kick(u32 *push, void *evoc)
 #define evo_mthd(p,m,s) *((p)++) = (((s) << 18) | (m))
 #define evo_data(p,d)   *((p)++) = (d)
 
-static bool
-evo_sync_wait(void *data)
-{
-	if (nouveau_bo_rd32(data, EVO_MAST_NTFY) != 0x00000000)
-		return true;
-	usleep_range(1, 2);
-	return false;
-}
-
 static int
 evo_sync(struct drm_device *dev)
 {
-	struct nvif_device *device = &nouveau_drm(dev)->device;
-	struct nv50_disp *disp = nv50_disp(dev);
 	struct nv50_mast *mast = nv50_mast(dev);
 	u32 *push = evo_wait(mast, 8);
 	if (push) {
-		nouveau_bo_wr32(disp->sync, EVO_MAST_NTFY, 0x00000000);
+		int ret = nvif_notify_get(&mast->notify);
+		if (ret)
+			return ret;
+		mast->done = false;
+
 		evo_mthd(push, 0x0084, 1);
-		evo_data(push, 0x80000000 | EVO_MAST_NTFY);
+		evo_data(push, 0xc0000000 | EVO_MAST_NTFY);
 		evo_mthd(push, 0x0080, 2);
 		evo_data(push, 0x00000000);
 		evo_data(push, 0x00000000);
 		evo_kick(push, mast);
-		if (nv_wait_cb(nvkm_device(device), evo_sync_wait, disp->sync))
+		if (wait_event_timeout(mast->wait, mast->done, 2 * HZ))
 			return 0;
 	}
-
-	return -EBUSY;
+	return -ETIMEDOUT;
 }
 
 /******************************************************************************
@@ -2421,7 +2444,7 @@ nv50_display_destroy(struct drm_device *dev)
 		nv50_fbdma_fini(fbdma);
 	}
 
-	nv50_dmac_destroy(&disp->mast.base, disp->disp);
+	nv50_core_destroy(&disp->mast, disp->disp);
 
 	nouveau_bo_unmap(disp->sync);
 	if (disp->sync)
