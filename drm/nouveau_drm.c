@@ -51,6 +51,7 @@
 #include "nouveau_fence.h"
 #include "nouveau_debugfs.h"
 #include "nouveau_usif.h"
+#include "nouveau_connector.h"
 
 MODULE_PARM_DESC(config, "option string to pass to driver core");
 static char *nouveau_config;
@@ -1025,6 +1026,23 @@ static int nouveau_pmops_runtime_idle(struct device *dev)
 	return 1;
 }
 
+static void nouveau_display_options(void)
+{
+	DRM_DEBUG_DRIVER("Loading Nouveau with parameters:\n");
+
+	DRM_DEBUG_DRIVER("... tv_disable   : %d\n", nouveau_tv_disable);
+	DRM_DEBUG_DRIVER("... ignorelid    : %d\n", nouveau_ignorelid);
+	DRM_DEBUG_DRIVER("... duallink     : %d\n", nouveau_duallink);
+	DRM_DEBUG_DRIVER("... nofbaccel    : %d\n", nouveau_nofbaccel);
+	DRM_DEBUG_DRIVER("... config       : %s\n", nouveau_config);
+	DRM_DEBUG_DRIVER("... debug        : %s\n", nouveau_debug);
+	DRM_DEBUG_DRIVER("... noaccel      : %d\n", nouveau_noaccel);
+	DRM_DEBUG_DRIVER("... modeset      : %d\n", nouveau_modeset);
+	DRM_DEBUG_DRIVER("... runpm        : %d\n", nouveau_runtime_pm);
+	DRM_DEBUG_DRIVER("... vram_pushbuf : %d\n", nouveau_vram_pushbuf);
+	DRM_DEBUG_DRIVER("... pstate       : %d\n", nouveau_pstate);
+}
+
 static const struct dev_pm_ops nouveau_pm_ops = {
 	.suspend = nouveau_pmops_suspend,
 	.resume = nouveau_pmops_resume,
@@ -1085,6 +1103,8 @@ EXPORT_SYMBOL(nouveau_platform_device_create_);
 static int __init
 nouveau_drm_init(void)
 {
+	nouveau_display_options();
+
 	if (nouveau_modeset == -1) {
 #ifdef CONFIG_VGA_CONSOLE
 		if (vgacon_text_force())
