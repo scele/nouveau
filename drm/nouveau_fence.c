@@ -120,15 +120,24 @@ nouveau_fence_work(struct nouveau_fence *fence,
 	spin_unlock(&fctx->lock);
 }
 
+static bool
+nouveau_fence_is_expired(u32 current_val, u32 future_val, u32 thresh)
+{
+	return future_val - thresh >= current_val - thresh;
+}
+
 static void
 nouveau_fence_update(struct nouveau_channel *chan)
 {
 	struct nouveau_fence_chan *fctx = chan->fence;
 	struct nouveau_fence *fence, *fnext;
+	u32 cur, future;
 
 	spin_lock(&fctx->lock);
+	cur = nouveau_fence_current(chan);
+	future = fctx->sequence;
 	list_for_each_entry_safe(fence, fnext, &fctx->pending, head) {
-		if (fctx->read(chan) < fence->sequence)
+		if (!nouveau_fence_is_expired(cur, future, fence->sequence))
 			break;
 
 		nouveau_fence_signal(fence);
@@ -164,6 +173,14 @@ nouveau_fence_done(struct nouveau_fence *fence)
 	if (fence->channel)
 		nouveau_fence_update(fence->channel);
 	return !fence->channel;
+}
+
+u32
+nouveau_fence_current(struct nouveau_channel *chan)
+{
+	struct nouveau_fence_chan *fctx = chan->fence;
+
+	return fctx->read(chan);
 }
 
 struct nouveau_fence_wait {

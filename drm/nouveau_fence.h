@@ -26,6 +26,7 @@ bool nouveau_fence_done(struct nouveau_fence *);
 void nouveau_fence_work(struct nouveau_fence *, void (*)(void *), void *);
 int  nouveau_fence_wait(struct nouveau_fence *, bool lazy, bool intr);
 int  nouveau_fence_sync(struct nouveau_fence *, struct nouveau_channel *);
+u32  nouveau_fence_current(struct nouveau_channel *);
 
 struct nouveau_fence_chan {
 	struct list_head pending;
