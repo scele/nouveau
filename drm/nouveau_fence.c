@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 Ben Skeggs.
+ * Copyright (c) 2014, NVIDIA CORPORATION.
  * All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -181,6 +182,83 @@ nouveau_fence_current(struct nouveau_channel *chan)
 	struct nouveau_fence_chan *fctx = chan->fence;
 
 	return fctx->read(chan);
+}
+
+/**
+ * Compares sync pt values a and b, both of which will trigger either before
+ * or after ref (i.e. a and b trigger before ref, or a and b trigger after
+ * ref). Supplying ref allows us to handle wrapping correctly.
+ *
+ * Returns -1 if a < b (a triggers before b)
+ *	    0 if a = b (a and b trigger at the same time)
+ *	    1 if a > b (b triggers before a)
+ */
+static int
+nouveau_fence_compare_ref(u32 ref, u32 a, u32 b)
+{
+	/*
+	 * We normalize both a and b by subtracting ref from them.
+	 * Denote the normalized values by a_n and b_n. Note that because
+	 * of wrapping, a_n and/or b_n may be negative.
+	 *
+	 * The normalized values a_n and b_n satisfy:
+	 * - a positive value triggers before a negative value
+	 * - a smaller positive value triggers before a greater positive value
+	 * - a smaller negative value (greater in absolute value) triggers
+	 *   before a greater negative value (smaller in absolute value).
+	 *
+	 * Thus we can just stick to unsigned arithmetic and compare
+	 * (u32)a_n to (u32)b_n.
+	 *
+	 * Just to reiterate the possible cases:
+	 *
+	 *	1A) ...ref..a....b....
+	 *	1B) ...ref..b....a....
+	 *	2A) ...b....ref..a....              b_n < 0
+	 *	2B) ...a....ref..b....     a_n > 0
+	 *	3A) ...a....b....ref..     a_n < 0, b_n < 0
+	 *	3A) ...b....a....ref..     a_n < 0, b_n < 0
+	 */
+	u32 a_n = a - ref;
+	u32 b_n = b - ref;
+
+	if (a_n < b_n)
+		return -1;
+	else if (a_n > b_n)
+		return 1;
+	return 0;
+}
+
+int
+nouveau_fence_compare(struct nouveau_fence *a, struct nouveau_fence *b)
+{
+	bool a_expired, b_expired;
+	u32 cur;
+
+	if (a == b)
+		return 0;
+
+	a_expired = nouveau_fence_done(a);
+	b_expired = nouveau_fence_done(b);
+
+	if (a_expired && !b_expired)
+		return -1;
+	else if (!a_expired && b_expired)
+		return 1;
+
+	/* Comparing two active fences that are running on different
+	 * channels - the result of this comparison is undefined.
+	 */
+	if (WARN_ON(a->channel != b->channel))
+		return 0;
+
+	cur = nouveau_fence_current(a->channel);
+
+	/* Both a and b are expired (trigger before cur) or not
+	 * expired (trigger after cur), so we can use cur
+	 * as a reference value for nouveau_fence_compare_ref.
+	 */
+	return nouveau_fence_compare_ref(cur, a->sequence, b->sequence);
 }
 
 struct nouveau_fence_wait {
