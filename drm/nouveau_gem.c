@@ -636,15 +636,16 @@ nouveau_gem_pushbuf_reloc_apply(struct nouveau_cli *cli,
 	return ret;
 }
 
-int
-nouveau_gem_ioctl_pushbuf(struct drm_device *dev, void *data,
-			  struct drm_file *file_priv)
+static int
+__nouveau_gem_ioctl_pushbuf(struct drm_device *dev,
+			    struct drm_nouveau_gem_pushbuf *req,
+			    struct drm_nouveau_gem_pushbuf_2 *req_2,
+			    struct drm_file *file_priv)
 {
 	struct nouveau_abi16 *abi16 = nouveau_abi16_get(file_priv, dev);
 	struct nouveau_cli *cli = nouveau_cli(file_priv);
 	struct nouveau_abi16_chan *temp;
 	struct nouveau_drm *drm = nouveau_drm(dev);
-	struct drm_nouveau_gem_pushbuf *req = data;
 	struct drm_nouveau_gem_pushbuf_push *push;
 	struct drm_nouveau_gem_pushbuf_bo *bo;
 	struct nouveau_channel *chan = NULL;
@@ -725,6 +726,14 @@ nouveau_gem_ioctl_pushbuf(struct drm_device *dev, void *data,
 		}
 	}
 
+	if (req_2 && (req_2->flags & NOUVEAU_GEM_PUSHBUF_2_FENCE_WAIT)) {
+		ret = nouveau_fence_sync_fd(req_2->fence, chan);
+		if (ret) {
+			NV_PRINTK(error, cli, "fence wait: %d\n", ret);
+			goto out;
+		}
+	}
+
 	if (chan->dma.ib_max) {
 		ret = nouveau_dma_wait(chan, req->nr_push + 1, 16);
 		if (ret) {
@@ -800,6 +809,16 @@ nouveau_gem_ioctl_pushbuf(struct drm_device *dev, void *data,
 		goto out;
 	}
 
+	if (req_2 && (req_2->flags & NOUVEAU_GEM_PUSHBUF_2_FENCE_EMIT)) {
+		ret = nouveau_fence_install(&fence->base, "nv-pushbuf",
+					    &req_2->fence);
+		if (ret) {
+			NV_PRINTK(error, cli, "fence install: %d\n", ret);
+			WIND_RING(chan);
+			goto out;
+		}
+	}
+
 out:
 	validate_fini(&op, fence, bo);
 	nouveau_fence_unref(&fence);
@@ -823,6 +842,25 @@ out_next:
 	}
 
 	return nouveau_abi16_put(abi16, ret);
+}
+
+int
+nouveau_gem_ioctl_pushbuf_2(struct drm_device *dev, void *data,
+			    struct drm_file *file_priv)
+{
+	struct drm_nouveau_gem_pushbuf_2 *req_2 = data;
+	struct drm_nouveau_gem_pushbuf *req = &req_2->base;
+
+	return __nouveau_gem_ioctl_pushbuf(dev, req, req_2, file_priv);
+}
+
+int
+nouveau_gem_ioctl_pushbuf(struct drm_device *dev, void *data,
+			  struct drm_file *file_priv)
+{
+	struct drm_nouveau_gem_pushbuf *req = data;
+
+	return __nouveau_gem_ioctl_pushbuf(dev, req, NULL, file_priv);
 }
 
 static inline uint32_t
