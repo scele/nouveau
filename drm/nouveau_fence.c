@@ -36,6 +36,7 @@
 #include "nouveau_drm.h"
 #include "nouveau_dma.h"
 #include "nouveau_fence.h"
+#include "nouveau_sync.h"
 
 struct fence_work {
 	struct work_struct base;
@@ -48,6 +49,12 @@ static void
 nouveau_fence_signal(struct nouveau_fence *fence)
 {
 	struct fence_work *work, *temp;
+
+	if (fence->channel) {
+		struct nouveau_fence_chan *fctx = fence->channel->fence;
+
+		nouveau_sync_timeline_signal(fctx->timeline);
+	}
 
 	list_for_each_entry_safe(work, temp, &fence->work, head) {
 		schedule_work(&work->base);
@@ -62,25 +69,30 @@ void
 nouveau_fence_context_del(struct nouveau_fence_chan *fctx)
 {
 	struct nouveau_fence *fence, *fnext;
+
 	spin_lock(&fctx->lock);
 	list_for_each_entry_safe(fence, fnext, &fctx->pending, head) {
 		nouveau_fence_signal(fence);
 	}
 	spin_unlock(&fctx->lock);
+	nouveau_sync_timeline_destroy(fctx->timeline);
 }
 
 void
-nouveau_fence_context_new(struct nouveau_fence_chan *fctx)
+nouveau_fence_context_new(struct nouveau_fence_chan *fctx,
+			  struct nouveau_channel *chan)
 {
 	INIT_LIST_HEAD(&fctx->flip);
 	INIT_LIST_HEAD(&fctx->pending);
 	spin_lock_init(&fctx->lock);
+	fctx->timeline = nouveau_sync_timeline_create(chan);
 }
 
 static void
 nouveau_fence_work_handler(struct work_struct *kwork)
 {
 	struct fence_work *work = container_of(kwork, typeof(*work), base);
+
 	work->func(work->data);
 	kfree(work);
 }
@@ -398,6 +410,7 @@ static void
 nouveau_fence_del(struct kref *kref)
 {
 	struct nouveau_fence *fence = container_of(kref, typeof(*fence), kref);
+
 	kfree(fence);
 }
 

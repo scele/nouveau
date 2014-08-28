@@ -75,7 +75,7 @@ nv04_fence_context_new(struct nouveau_channel *chan)
 {
 	struct nv04_fence_chan *fctx = kzalloc(sizeof(*fctx), GFP_KERNEL);
 	if (fctx) {
-		nouveau_fence_context_new(&fctx->base);
+		nouveau_fence_context_new(&fctx->base, chan);
 		fctx->base.emit = nv04_fence_emit;
 		fctx->base.sync = nv04_fence_sync;
 		fctx->base.read = nv04_fence_read;

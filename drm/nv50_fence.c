@@ -46,7 +46,7 @@ nv50_fence_context_new(struct nouveau_channel *chan)
 	if (!fctx)
 		return -ENOMEM;
 
-	nouveau_fence_context_new(&fctx->base);
+	nouveau_fence_context_new(&fctx->base, chan);
 	fctx->base.emit = nv10_fence_emit;
 	fctx->base.read = nv10_fence_read;
 	fctx->base.sync = nv17_fence_sync;

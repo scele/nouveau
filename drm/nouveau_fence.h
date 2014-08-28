@@ -2,6 +2,7 @@
 #define __NOUVEAU_FENCE_H__
 
 struct nouveau_drm;
+struct sync_timeline;
 
 struct nouveau_fence {
 	struct list_head head;
@@ -42,6 +43,8 @@ struct nouveau_fence_chan {
 
 	spinlock_t lock;
 	u32 sequence;
+
+	struct sync_timeline *timeline;
 };
 
 struct nouveau_fence_priv {
@@ -57,7 +60,8 @@ struct nouveau_fence_priv {
 
 #define nouveau_fence(drm) ((struct nouveau_fence_priv *)(drm)->fence)
 
-void nouveau_fence_context_new(struct nouveau_fence_chan *);
+void nouveau_fence_context_new(struct nouveau_fence_chan *,
+			       struct nouveau_channel *);
 void nouveau_fence_context_del(struct nouveau_fence_chan *);
 
 int nv04_fence_create(struct nouveau_drm *);
