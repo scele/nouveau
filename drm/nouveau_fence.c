@@ -366,57 +366,19 @@ nouveau_fence_wait(struct nouveau_fence *fence, bool lazy, bool intr)
 }
 
 int
-nouveau_fence_sync(struct nouveau_bo *nvbo, struct nouveau_channel *chan, bool exclusive, bool intr)
+nouveau_fence_sync(struct fence *fence, struct nouveau_channel *chan, bool intr)
 {
 	struct nouveau_fence_chan *fctx = chan->fence;
-	struct fence *fence;
-	struct reservation_object *resv = nvbo->bo.resv;
-	struct reservation_object_list *fobj;
+	struct nouveau_channel *prev = NULL;
 	struct nouveau_fence *f;
-	int ret = 0, i;
+	int ret = 0;
 
-	if (!exclusive) {
-		ret = reservation_object_reserve_shared(resv);
+	f = nouveau_local_fence(fence, chan->drm);
+	if (f)
+		prev = f->channel;
 
-		if (ret)
-			return ret;
-	}
-
-	fobj = reservation_object_get_list(resv);
-	fence = reservation_object_get_excl(resv);
-
-	if (fence && (!exclusive || !fobj || !fobj->shared_count)) {
-		struct nouveau_channel *prev = NULL;
-
-		f = nouveau_local_fence(fence, chan->drm);
-		if (f)
-			prev = f->channel;
-
-		if (!prev || (prev != chan && (ret = fctx->sync(f, prev, chan))))
-			ret = fence_wait(fence, intr);
-
-		return ret;
-	}
-
-	if (!exclusive || !fobj)
-		return ret;
-
-	for (i = 0; i < fobj->shared_count && !ret; ++i) {
-		struct nouveau_channel *prev = NULL;
-
-		fence = rcu_dereference_protected(fobj->shared[i],
-						reservation_object_held(resv));
-
-		f = nouveau_local_fence(fence, chan->drm);
-		if (f)
-			prev = f->channel;
-
-		if (!prev || (prev != chan && (ret = fctx->sync(f, prev, chan))))
-			ret = fence_wait(fence, intr);
-
-		if (ret)
-			break;
-	}
+	if (!prev || (prev != chan && (ret = fctx->sync(f, prev, chan))))
+		ret = fence_wait(fence, intr);
 
 	return ret;
 }
