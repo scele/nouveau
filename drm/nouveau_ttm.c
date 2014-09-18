@@ -81,12 +81,12 @@ nouveau_vram_manager_new(struct ttm_mem_type_manager *man,
 	u32 size_nc = 0;
 	int ret;
 
-	if (nvbo->tile_flags & NOUVEAU_GEM_TILE_NONCONTIG)
+	if (nvbo->bo_flags & NOUVEAU_GEM_TILE_NONCONTIG)
 		size_nc = 1 << nvbo->page_shift;
 
 	ret = pfb->ram->get(pfb, mem->num_pages << PAGE_SHIFT,
 			   mem->page_alignment << PAGE_SHIFT, size_nc,
-			   (nvbo->tile_flags >> 8) & 0x3ff, &node);
+			   (nvbo->bo_flags >> 8) & 0x3ff, &node);
 	if (ret) {
 		mem->mm_node = NULL;
 		return (ret == -ENOSPC) ? 0 : ret;
@@ -174,11 +174,11 @@ nouveau_gart_manager_new(struct ttm_mem_type_manager *man,
 	switch (drm->device.info.family) {
 	case NV_DEVICE_INFO_V0_TESLA:
 		if (drm->device.info.chipset != 0x50)
-			node->memtype = (nvbo->tile_flags & 0x7f00) >> 8;
+			node->memtype = (nvbo->bo_flags & 0x7f00) >> 8;
 		break;
 	case NV_DEVICE_INFO_V0_FERMI:
 	case NV_DEVICE_INFO_V0_KEPLER:
-		node->memtype = (nvbo->tile_flags & 0xff00) >> 8;
+		node->memtype = (nvbo->bo_flags & 0xff00) >> 8;
 		break;
 	default:
 		break;
