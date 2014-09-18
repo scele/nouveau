@@ -46,6 +46,7 @@
 #define NOUVEAU_GEM_TILE_32BPP       0x00000002
 #define NOUVEAU_GEM_TILE_ZETA        0x00000004
 #define NOUVEAU_GEM_TILE_NONCONTIG   0x00000008
+#define NOUVEAU_GEM_EXPLICIT_SYNC    0x00040000
 
 struct drm_nouveau_gem_info {
 	uint32_t handle;
@@ -54,7 +55,7 @@ struct drm_nouveau_gem_info {
 	uint64_t offset;
 	uint64_t map_handle;
 	uint32_t tile_mode;
-	uint32_t tile_flags;
+	uint32_t bo_flags;
 };
 
 struct drm_nouveau_gem_new {
@@ -149,6 +150,7 @@ struct drm_nouveau_gem_cpu_fini {
 #define DRM_NOUVEAU_GEM_CPU_FINI       0x43
 #define DRM_NOUVEAU_GEM_INFO           0x44
 #define DRM_NOUVEAU_GEM_PUSHBUF_2      0x45
+#define DRM_NOUVEAU_GEM_SET_INFO       0x46
 
 #define DRM_IOCTL_NOUVEAU_GEM_NEW            DRM_IOWR(DRM_COMMAND_BASE + DRM_NOUVEAU_GEM_NEW, struct drm_nouveau_gem_new)
 #define DRM_IOCTL_NOUVEAU_GEM_PUSHBUF        DRM_IOWR(DRM_COMMAND_BASE + DRM_NOUVEAU_GEM_PUSHBUF, struct drm_nouveau_gem_pushbuf)
@@ -156,5 +158,6 @@ struct drm_nouveau_gem_cpu_fini {
 #define DRM_IOCTL_NOUVEAU_GEM_CPU_PREP       DRM_IOW (DRM_COMMAND_BASE + DRM_NOUVEAU_GEM_CPU_PREP, struct drm_nouveau_gem_cpu_prep)
 #define DRM_IOCTL_NOUVEAU_GEM_CPU_FINI       DRM_IOW (DRM_COMMAND_BASE + DRM_NOUVEAU_GEM_CPU_FINI, struct drm_nouveau_gem_cpu_fini)
 #define DRM_IOCTL_NOUVEAU_GEM_INFO           DRM_IOWR(DRM_COMMAND_BASE + DRM_NOUVEAU_GEM_INFO, struct drm_nouveau_gem_info)
+#define DRM_IOCTL_NOUVEAU_GEM_SET_INFO       DRM_IOWR(DRM_COMMAND_BASE + DRM_NOUVEAU_GEM_SET_INFO, struct drm_nouveau_gem_info)
 
 #endif /* __NOUVEAU_DRM_H__ */

@@ -180,7 +180,7 @@ nouveau_bo_fixup_align(struct nouveau_bo *nvbo, u32 flags,
 
 int
 nouveau_bo_new(struct drm_device *dev, int size, int align,
-	       uint32_t flags, uint32_t tile_mode, uint32_t tile_flags,
+	       uint32_t flags, uint32_t tile_mode, uint32_t bo_flags,
 	       struct sg_table *sg,
 	       struct nouveau_bo **pnvbo)
 {
@@ -211,7 +211,7 @@ nouveau_bo_new(struct drm_device *dev, int size, int align,
 	INIT_LIST_HEAD(&nvbo->entry);
 	INIT_LIST_HEAD(&nvbo->vma_list);
 	nvbo->tile_mode = tile_mode;
-	nvbo->tile_flags = tile_flags;
+	nvbo->bo_flags = bo_flags;
 	nvbo->bo.bdev = &drm->ttm.bdev;
 
 	if (!nv_device_is_cpu_coherent(nvkm_device(&drm->device)))
@@ -272,7 +272,7 @@ set_placement_range(struct nouveau_bo *nvbo, uint32_t type)
 		 * speed up when alpha-blending and depth-test are enabled
 		 * at the same time.
 		 */
-		if (nvbo->tile_flags & NOUVEAU_GEM_TILE_ZETA) {
+		if (nvbo->bo_flags & NOUVEAU_GEM_TILE_ZETA) {
 			fpfn = vram_pages / 2;
 			lpfn = ~0;
 		} else {
@@ -1291,7 +1291,7 @@ nouveau_bo_vm_bind(struct ttm_buffer_object *bo, struct ttm_mem_reg *new_mem,
 	if (drm->device.info.family >= NV_DEVICE_INFO_V0_CELSIUS) {
 		*new_tile = nv10_bo_set_tiling(dev, offset, new_mem->size,
 						nvbo->tile_mode,
-						nvbo->tile_flags);
+						nvbo->bo_flags);
 	}
 
 	return 0;

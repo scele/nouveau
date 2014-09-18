@@ -149,7 +149,7 @@ nouveau_gem_object_close(struct drm_gem_object *gem, struct drm_file *file_priv)
 
 int
 nouveau_gem_new(struct drm_device *dev, int size, int align, uint32_t domain,
-		uint32_t tile_mode, uint32_t tile_flags,
+		uint32_t tile_mode, uint32_t bo_flags,
 		struct nouveau_bo **pnvbo)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
@@ -165,7 +165,7 @@ nouveau_gem_new(struct drm_device *dev, int size, int align, uint32_t domain,
 		flags |= TTM_PL_FLAG_SYSTEM;
 
 	ret = nouveau_bo_new(dev, size, align, flags, tile_mode,
-			     tile_flags, NULL, pnvbo);
+			     bo_flags, NULL, pnvbo);
 	if (ret)
 		return ret;
 	nvbo = *pnvbo;
@@ -216,7 +216,21 @@ nouveau_gem_info(struct drm_file *file_priv, struct drm_gem_object *gem,
 	rep->size = nvbo->bo.mem.num_pages << PAGE_SHIFT;
 	rep->map_handle = drm_vma_node_offset_addr(&nvbo->bo.vma_node);
 	rep->tile_mode = nvbo->tile_mode;
-	rep->tile_flags = nvbo->tile_flags;
+	rep->bo_flags = nvbo->bo_flags;
+	return 0;
+}
+
+static int
+nouveau_gem_set_info(struct drm_file *file_priv, struct drm_gem_object *gem,
+		     struct drm_nouveau_gem_info *req)
+{
+	struct nouveau_bo *nvbo = nouveau_gem_object(gem);
+
+	if (req->bo_flags & NOUVEAU_GEM_EXPLICIT_SYNC)
+		nvbo->bo_flags |= NOUVEAU_GEM_EXPLICIT_SYNC;
+	else
+		nvbo->bo_flags &= ~NOUVEAU_GEM_EXPLICIT_SYNC;
+
 	return 0;
 }
 
@@ -231,14 +245,15 @@ nouveau_gem_ioctl_new(struct drm_device *dev, void *data,
 	struct nouveau_bo *nvbo = NULL;
 	int ret = 0;
 
-	if (!pfb->memtype_valid(pfb, req->info.tile_flags)) {
-		NV_PRINTK(error, cli, "bad page flags: 0x%08x\n", req->info.tile_flags);
+	if (!pfb->memtype_valid(pfb, req->info.bo_flags)) {
+		NV_PRINTK(error, cli, "bad page flags: 0x%08x\n",
+			  req->info.bo_flags);
 		return -EINVAL;
 	}
 
 	ret = nouveau_gem_new(dev, req->info.size, req->align,
 			      req->info.domain, req->info.tile_mode,
-			      req->info.tile_flags, &nvbo);
+			      req->info.bo_flags, &nvbo);
 	if (ret)
 		return ret;
 
@@ -303,12 +318,14 @@ validate_fini_no_ticket(struct validate_op *op, struct nouveau_fence *fence,
 {
 	struct nouveau_bo *nvbo;
 	struct drm_nouveau_gem_pushbuf_bo *b;
+	bool explicit_sync;
 
 	while (!list_empty(&op->list)) {
 		nvbo = list_entry(op->list.next, struct nouveau_bo, entry);
 		b = &pbbo[nvbo->pbbo_index];
+		explicit_sync = !!(nvbo->bo_flags & NOUVEAU_GEM_EXPLICIT_SYNC);
 
-		if (likely(fence))
+		if (likely(fence) && !explicit_sync)
 			nouveau_bo_fence(nvbo, fence, !!b->write_domains);
 
 		if (unlikely(nvbo->validate_mapped)) {
@@ -947,3 +964,19 @@ nouveau_gem_ioctl_info(struct drm_device *dev, void *data,
 	return ret;
 }
 
+int
+nouveau_gem_ioctl_set_info(struct drm_device *dev, void *data,
+			   struct drm_file *file_priv)
+{
+	struct drm_nouveau_gem_info *req = data;
+	struct drm_gem_object *gem;
+	int ret;
+
+	gem = drm_gem_object_lookup(dev, file_priv, req->handle);
+	if (!gem)
+		return -ENOENT;
+
+	ret = nouveau_gem_set_info(file_priv, gem, req);
+	drm_gem_object_unreference_unlocked(gem);
+	return ret;
+}
