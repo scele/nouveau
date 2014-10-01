@@ -35,6 +35,8 @@ struct nouveau_platform_gpu {
 	struct clk *clk_pwr;
 
 	struct regulator *vdd;
+
+	const struct firmware *ctxsw_fw;
 };
 
 struct nouveau_platform_device {

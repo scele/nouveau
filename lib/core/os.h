@@ -1143,6 +1143,7 @@ clk_get_rate(struct clk *clk)
 
 struct nouveau_platform_gpu {
 	struct clk *clk;
+	const struct firmware *ctxsw_fw;
 };
 
 struct nouveau_platform_device {
