@@ -157,8 +157,10 @@ nouveau_gem_new(struct drm_device *dev, int size, int align, uint32_t domain,
 	u32 flags = 0;
 	int ret;
 
-	if (domain & NOUVEAU_GEM_DOMAIN_VRAM)
+	if (domain & NOUVEAU_GEM_DOMAIN_VRAM) {
+		NV_WARN(drm, "attempt to allocate a VRAM object!\n");
 		flags |= TTM_PL_FLAG_VRAM;
+	}
 	if (domain & NOUVEAU_GEM_DOMAIN_GART)
 		flags |= TTM_PL_FLAG_TT;
 	if (!flags || domain & NOUVEAU_GEM_DOMAIN_CPU)
