@@ -43,6 +43,15 @@ struct nouveau_vm_pgd {
 struct nouveau_gpuobj;
 struct nouveau_mem;
 
+/**
+ * struct nouveau_vma - range in a virtual address space
+ *
+ * @head
+ * @refcount number of references to this VMA
+ * @vm VM this range originates from
+ * @node range within the VM's nouveau_mm
+ * @offset starting address (in bytes) of this VMA
+ */
 struct nouveau_vma {
 	struct list_head head;
 	int refcount;
@@ -52,6 +61,12 @@ struct nouveau_vma {
 	u32 access;
 };
 
+/**
+ * struct nouveau_vm - virtual address space
+ *
+ * @vmm: mapping properties and operations
+ * @mm: space from which ranges can be allocated
+ */
 struct nouveau_vm {
 	struct nouveau_vmmgr *vmm;
 	struct nouveau_mm mm;
@@ -65,6 +80,9 @@ struct nouveau_vm {
 	u32 lpde;
 };
 
+/**
+ * struct nouveau_vmmgr - mapping properties and operations
+ */
 struct nouveau_vmmgr {
 	struct nouveau_subdev base;
 

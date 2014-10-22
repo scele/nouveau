@@ -1,6 +1,15 @@
 #ifndef __NOUVEAU_MM_H__
 #define __NOUVEAU_MM_H__
 
+/**
+ * struct nouveau_mm_node - describes a range in a nouveau_mm
+ *
+ * @nl_entry: to link with nouveau_mm::nodes
+ * @fl_entry: to link with nouveau_mm::free
+ * @rl_entry: to link with nouveau_mem::regions
+ * @offset: offset of this range within the nouveau_mm it originates from
+ * @length: length of this range
+ */
 struct nouveau_mm_node {
 	struct list_head nl_entry;
 	struct list_head fl_entry;
@@ -15,6 +24,14 @@ struct nouveau_mm_node {
 	u32 length;
 };
 
+/**
+ * struct nouveau_mm - address space from which ranges can be allocated
+ *
+ * @nodes: all ranges belonging to this memory manager
+ * @free: free ranges in this memory manager
+ * @block_size: boundary between which memories of different types cannot exist
+ * @heap_nodes: number of heaps being allocated from this space
+ */
 struct nouveau_mm {
 	struct list_head nodes;
 	struct list_head free;

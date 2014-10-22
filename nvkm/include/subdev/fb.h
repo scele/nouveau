@@ -24,6 +24,27 @@
 #define NV_MEM_TYPE_VM 0x7f
 #define NV_MEM_COMP_VM 0x03
 
+/**
+ * struct nouveau_mem - allocated memory
+ *
+ * Memory can be provided through 3 different mechanisms:
+ * 1) as an array of pages, using the pages member
+ * 2) as a SG table, using the sg member
+ * 3) as a list of nouveau_mm_node, using the regions member
+ *
+ * One and only one of these backing mechanisms can be used at a given time.
+ * nouveau_vm_map() will use the correct mapping function according to which
+ * one is used.
+ *
+ * @dev: DRM device this memory is allocated for
+ * @bar_vma:
+ * @vma:
+ * @page_shift: size of allocated memory pages
+ *
+ * @tag:
+ * @regions:
+ * @pages:
+ */
 struct nouveau_mem {
 	struct drm_device *dev;
 
